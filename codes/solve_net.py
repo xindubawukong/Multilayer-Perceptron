@@ -1,4 +1,4 @@
-from .utils import LOG_INFO, onehot_encoding, calculate_acc
+from utils import LOG_INFO, onehot_encoding, calculate_acc
 import numpy as np
 
 
