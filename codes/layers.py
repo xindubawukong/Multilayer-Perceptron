@@ -31,11 +31,11 @@ class Relu(Layer):
 
     def forward(self, input):
         f = (input > 0) * input
-        self._saved_for_backward(f)
+        self.f = f
         return f
 
     def backward(self, grad_output):
-        f = self._saved_tensor
+        f = self.f
         return grad_output * f
 
 
@@ -47,11 +47,11 @@ class Sigmoid(Layer):
 
     def forward(self, input):
         f = 1.0 / (np.exp(-1 * input) + 1)
-        self._saved_for_backward(f)
+        self.f = f
         return f
 
     def backward(self, grad_output):
-        f = self._saved_tensor
+        f = self.f
         return grad_output * f * (1 - f)
 
 
@@ -61,13 +61,15 @@ class Softmax(Layer):
 
     def forward(self, input):
         e = np.exp(input)
-        self._saved_for_backward(e)
+        self.e = e
         return e / e.sum(axis=1)[:, None]
 
     def backward(self, grad_output):
-        e = self._saved_tensor
+        e = self.e
         sum = e.sum(axis=1)[:, None]
-        return (1 - e / sum) / sum
+        tmp = grad_output * -e / sum**2
+        grad = tmp - grad_output * 2 * -(e/sum)**2 + grad_output * (e / sum - (e / sum)**2)
+        return grad
 
 
 # y = x.dot(W) + b
@@ -110,6 +112,10 @@ class Linear(Layer):
 
 
 if __name__ == '__main__':
-    layer1 = Softmax('relu')
-    print(layer1.forward(np.array([[-1, 0, 1, 2],
-                                   [1, 2, 3, 4]])))
+    layer1 = Softmax('softmax')
+    a = np.array([[-1, 0],
+                  [0, 1]])
+    b = np.array([[-1, 1],
+                   [1, -1]])
+    print(layer1.forward(a))
+    print(layer1.backward(np.array(b)))
