@@ -31,12 +31,12 @@ class Relu(Layer):
 
     def forward(self, input):
         f = (input > 0) * input
-        self.f = f
+        self.input = input
         return f
 
     def backward(self, grad_output):
-        f = self.f
-        return grad_output * f
+        input = self.input
+        return grad_output * (input > 0)
 
 
 # f(x) = 1 / (1 + e^(-x))
@@ -62,14 +62,25 @@ class Softmax(Layer):
     def forward(self, input):
         e = np.exp(input)
         self.e = e
-        return e / e.sum(axis=1)[:, None]
+        self.y = e / e.sum(axis=1)[:, None]
+        return self.y
 
     def backward(self, grad_output):
         e = self.e
-        sum = e.sum(axis=1)[:, None]
-        tmp = grad_output * -e / sum**2
-        grad = tmp - grad_output * 2 * -(e/sum)**2 + grad_output * (e / sum - (e / sum)**2)
+        y = self.y
+        grad = np.zeros(e.shape)
+        batch_size, n = e.shape
+        for k in range(batch_size):
+            tmp = -y[k][:, None].dot(y[k][:, None].T)
+            grad[k] = grad_output[k].dot(tmp)
+            grad[k] += grad_output[k] * y[k]
+            # for i in range(n):
+            #     grad[k][i] = grad_output[k].dot(tmp[i].T)
+            #     grad[k][i] += grad_output[k][i] * y[k][i]
         return grad
+        # sum = e.sum(axis=1)[:, None]
+        # tmp = grad_output * -e / sum**2
+        # grad = tmp - grad_output *  -(e/sum)**2 + grad_output * (e / sum - (e / sum)**2)
 
 
 # y = x.dot(W) + b
