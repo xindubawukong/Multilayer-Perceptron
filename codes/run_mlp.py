@@ -1,7 +1,7 @@
 from network import Network
 from utils import LOG_INFO
-from layers import Relu, Sigmoid, Linear
-from loss import EuclideanLoss
+from layers import Relu, Sigmoid, Softmax, Linear
+from loss import EuclideanLoss, CrossEntropyLoss
 from solve_net import train_net, test_net
 from load_data import load_mnist_2d
 
@@ -11,9 +11,14 @@ train_data, test_data, train_label, test_label = load_mnist_2d('data')
 # Your model defintion here
 # You should explore different model architecture
 model = Network()
-model.add(Linear('fc1', 784, 10, 0.01))
+model.add(Linear('fc1', 784, 392, 0.01))
+model.add(Relu('relu2'))
+model.add(Linear('fc2', 392, 196, 0.01))
+model.add(Relu('relu3'))
+model.add(Linear('fc4', 196, 10, 0.01))
+model.add(Softmax('softmax'))
 
-loss = EuclideanLoss(name='loss')
+loss = CrossEntropyLoss(name='loss')
 
 # Training configuration
 # You should adjust these hyperparameters
@@ -22,7 +27,7 @@ loss = EuclideanLoss(name='loss')
 #       'disp_freq' denotes number of iterations in one epoch to display information.
 
 config = {
-    'learning_rate': 0.0,
+    'learning_rate': 0.1,
     'weight_decay': 0.0,
     'momentum': 0.0,
     'batch_size': 100,

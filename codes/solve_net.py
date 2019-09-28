@@ -1,4 +1,4 @@
-from .utils import LOG_INFO, onehot_encoding, calculate_acc
+from utils import LOG_INFO, onehot_encoding, calculate_acc
 import numpy as np
 
 
@@ -19,6 +19,7 @@ def train_net(model, loss, config, inputs, labels, batch_size, disp_freq):
     acc_list = []
 
     for input, label in data_iterator(inputs, labels, batch_size):
+    # for input, label in [(inputs[:2], labels[:2]) for i in range(100)]:
         target = onehot_encoding(label, 10)
         iter_counter += 1
 
@@ -33,6 +34,11 @@ def train_net(model, loss, config, inputs, labels, batch_size, disp_freq):
         model.backward(grad)
         # update layers' weights
         model.update(config)
+
+        # print('lanel:', label)
+        # print('output:', output)
+        # print('loss_value:', loss_value)
+        # print('grad:', grad)
 
         acc_value = calculate_acc(output, label)
         loss_list.append(loss_value)

@@ -23,35 +23,70 @@ class Layer(object):
         self._saved_tensor = tensor
 
 
+# f(x) = max(0, x)
+# f'(x) = f(x)
 class Relu(Layer):
     def __init__(self, name):
-        super(Relu, self).__init__(name)
+        super().__init__(name)
 
     def forward(self, input):
-        '''Your codes here'''
-        pass
+        f = (input > 0) * input
+        self.input = input
+        return f
 
     def backward(self, grad_output):
-        '''Your codes here'''
-        pass
+        input = self.input
+        return grad_output * (input > 0)
 
 
+# f(x) = 1 / (1 + e^(-x))
+# f'(x) = f(x) * (1 - f(x))
 class Sigmoid(Layer):
     def __init__(self, name):
-        super(Sigmoid, self).__init__(name)
+        super().__init__(name)
 
     def forward(self, input):
-        '''Your codes here'''
-        pass
+        f = 1.0 / (np.exp(-1 * input) + 1)
+        self.f = f
+        return f
 
     def backward(self, grad_output):
-        '''Your codes here'''
-        pass
+        f = self.f
+        return grad_output * f * (1 - f)
 
 
+class Softmax(Layer):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def forward(self, input):
+        e = np.exp(input)
+        self.e = e
+        self.y = e / e.sum(axis=1)[:, None]
+        return self.y
+
+    def backward(self, grad_output):
+        e = self.e
+        y = self.y
+        grad = np.zeros(e.shape)
+        batch_size, n = e.shape
+        for k in range(batch_size):
+            tmp = -y[k][:, None].dot(y[k][:, None].T)
+            grad[k] = grad_output[k].dot(tmp)
+            grad[k] += grad_output[k] * y[k]
+            # for i in range(n):
+            #     grad[k][i] = grad_output[k].dot(tmp[i].T)
+            #     grad[k][i] += grad_output[k][i] * y[k][i]
+        return grad
+        # sum = e.sum(axis=1)[:, None]
+        # tmp = grad_output * -e / sum**2
+        # grad = tmp - grad_output *  -(e/sum)**2 + grad_output * (e / sum - (e / sum)**2)
+
+
+# y = x.dot(W) + b
 class Linear(Layer):
     def __init__(self, name, in_num, out_num, init_std):
-        super(Linear, self).__init__(name, trainable=True)
+        super().__init__(name, trainable=True)
         self.in_num = in_num
         self.out_num = out_num
         self.W = np.random.randn(in_num, out_num) * init_std
@@ -64,12 +99,16 @@ class Linear(Layer):
         self.diff_b = np.zeros(out_num)
 
     def forward(self, input):
-        '''Your codes here'''
-        pass
+        self._saved_for_backward(input)
+        return input.dot(self.W) + self.b
 
     def backward(self, grad_output):
-        '''Your codes here'''
-        pass
+        x = self._saved_tensor
+        grad_y = grad_output
+        batch_size = grad_y.shape[0]
+        self.grad_W = x.T.dot(grad_y) / batch_size
+        self.grad_b = grad_y.T.sum(axis=1) / batch_size
+        return grad_y.dot(self.W.T)
 
     def update(self, config):
         mm = config['momentum']
@@ -81,3 +120,13 @@ class Linear(Layer):
 
         self.diff_b = mm * self.diff_b + (self.grad_b + wd * self.b)
         self.b = self.b - lr * self.diff_b
+
+
+if __name__ == '__main__':
+    layer1 = Softmax('softmax')
+    a = np.array([[-1, 0],
+                  [0, 1]])
+    b = np.array([[-1, 1],
+                   [1, -1]])
+    print(layer1.forward(a))
+    print(layer1.backward(np.array(b)))

@@ -23,3 +23,9 @@ def load_mnist_2d(data_dir):
     teX = (teX - 128.0) / 255.0
 
     return trX, teX, trY, teY
+
+
+if __name__ == '__main__':
+    trX, teX, trY, teY = load_mnist_2d('data')
+    print(type(trX), trX.shape)
+    print(type(trY), trY.shape)
