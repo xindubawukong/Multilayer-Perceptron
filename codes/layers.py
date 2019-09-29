@@ -74,13 +74,7 @@ class Softmax(Layer):
             tmp = -y[k][:, None].dot(y[k][:, None].T)
             grad[k] = grad_output[k].dot(tmp)
             grad[k] += grad_output[k] * y[k]
-            # for i in range(n):
-            #     grad[k][i] = grad_output[k].dot(tmp[i].T)
-            #     grad[k][i] += grad_output[k][i] * y[k][i]
         return grad
-        # sum = e.sum(axis=1)[:, None]
-        # tmp = grad_output * -e / sum**2
-        # grad = tmp - grad_output *  -(e/sum)**2 + grad_output * (e / sum - (e / sum)**2)
 
 
 # y = x.dot(W) + b
@@ -124,9 +118,9 @@ class Linear(Layer):
 
 if __name__ == '__main__':
     layer1 = Softmax('softmax')
-    a = np.array([[-1, 0],
-                  [0, 1]])
-    b = np.array([[-1, 1],
-                   [1, -1]])
+    a = np.array([[-1, 0, 1],
+                  [0, 1, 2]])
+    b = np.array([[-1, 1, 2],
+                   [1, -1, 2]])
     print(layer1.forward(a))
-    print(layer1.backward(np.array(b)))
+    print(layer1.backward(b))
