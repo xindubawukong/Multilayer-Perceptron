@@ -1,4 +1,4 @@
-from utils import LOG_INFO, onehot_encoding, calculate_acc
+from utils import *
 import numpy as np
 
 
@@ -12,13 +12,15 @@ def data_iterator(x, y, batch_size, shuffle=True):
         yield x[indx[start_idx: end_idx]], y[indx[start_idx: end_idx]]
 
 
-def train_net(model, loss, config, inputs, labels, batch_size, disp_freq):
+def train_net(model, loss, config, train_inputs, train_labels, batch_size, disp_freq, test_input, test_labels):
 
     iter_counter = 0
     loss_list = []
     acc_list = []
 
-    for input, label in data_iterator(inputs, labels, batch_size):
+    record = []
+
+    for input, label in data_iterator(train_inputs, train_labels, batch_size):
     # for input, label in [(inputs[:2], labels[:2]) for i in range(100)]:
         target = onehot_encoding(label, 10)
         iter_counter += 1
@@ -50,6 +52,11 @@ def train_net(model, loss, config, inputs, labels, batch_size, disp_freq):
             acc_list = []
             LOG_INFO(msg)
 
+            test_loss, test_acc = test_net(model, loss, test_input, test_labels, batch_size)
+            record.append((iter_counter, test_loss, test_acc, get_run_time()))
+    
+    return record
+
 
 def test_net(model, loss, inputs, labels, batch_size):
     loss_list = []
@@ -65,3 +72,5 @@ def test_net(model, loss, inputs, labels, batch_size):
 
     msg = '    Testing, total mean loss %.5f, total acc %.5f' % (np.mean(loss_list), np.mean(acc_list))
     LOG_INFO(msg)
+
+    return np.mean(loss_list), np.mean(acc_list)

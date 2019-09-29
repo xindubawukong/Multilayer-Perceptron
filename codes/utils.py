@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 import numpy as np
 from datetime import datetime
+import time
 
 
 def onehot_encoding(label, max_num_class):
@@ -19,3 +20,14 @@ def LOG_INFO(msg):
     now = datetime.now()
     display_now = str(now).split(' ')[1][:-3]
     print(display_now + ' ' + msg)
+
+
+start_time = 0
+
+
+def reset_time():
+    start_time = time.process_time()
+
+
+def get_run_time():
+    return time.process_time() - start_time
